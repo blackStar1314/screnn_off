@@ -35,10 +35,13 @@ screen_off::screen_off(QWidget *parent)
     _monitorState = _iniCfg->value(ini_configuration::kStateKeyName, false).toBool();
     _iniCfg->endGroup();
     ChangeMonitorState();
+    auto autoRun = IsAutoRun();
+    ui.m_isAutoRun->setChecked(autoRun);
 
     QObject::connect(ui.m_idleTimeSpinBox, SIGNAL(valueChanged(int)), this, SLOT(OnIdleTimeValueChanged(int)));
     QObject::connect(ui.m_mintorState, SIGNAL(clicked()), this, SLOT(OnClicked()));
     QObject::connect(_idleMontor.get(), SIGNAL(IdleTime(int)), this, SLOT(OnIdleTime(int)));
+    QObject::connect(ui.m_isAutoRun, SIGNAL(stateChanged(int)), this, SLOT(OnAutoRun(int)));
 }
 
 screen_off::~screen_off()
@@ -103,6 +106,19 @@ void screen_off::DelMonitorPower(bool off)
     ::SendMessageW(::GetShellWindow(), WM_SYSCOMMAND, SC_MONITORPOWER, off ? 2 : -1);
 }
 
+bool screen_off::IsAutoRun()
+{
+    QSettings bootUpSettings("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::Registry32Format);
+    const auto name = QCoreApplication::applicationName();
+    const auto appPath = QCoreApplication::applicationFilePath();
+    if (bootUpSettings.contains(name) && bootUpSettings.value(name) == appPath) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 void screen_off::OnIdleTimeValueChanged(int value)
 {
     _idleMontor->SetIdleTime(value);
@@ -126,4 +142,18 @@ void screen_off::OnIdleTime(int timeElapsed)
     qDebug() << "On Idle time : " << timeElapsed;
     LockWorkStation();
     DelMonitorPower(true);
+}
+
+void screen_off::OnAutoRun(int value)
+{
+    QSettings bootUpSettings("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::Registry32Format);
+    const auto appPath = QCoreApplication::applicationFilePath();
+    const auto name = QCoreApplication::applicationName();
+    qDebug() << "On auto run : " << value;
+    if (value == 2) {
+        bootUpSettings.setValue(name, appPath);
+    }
+    else {
+        bootUpSettings.remove(name);
+    }
 }

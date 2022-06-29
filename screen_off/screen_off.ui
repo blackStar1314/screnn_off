@@ -12,8 +12,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>496</width>
-    <height>133</height>
+    <width>499</width>
+    <height>174</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,6 +65,19 @@
    </property>
    <property name="maximum">
     <number>100</number>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="m_isAutoRun">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>110</y>
+     <width>91</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>开机自启动</string>
    </property>
   </widget>
  </widget>

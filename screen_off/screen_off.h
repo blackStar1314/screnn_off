@@ -21,10 +21,12 @@ private:
     void closeEvent(QCloseEvent* e) override;
     void CreateSystemTrayIcon();
     static void DelMonitorPower(bool off);
+    static bool IsAutoRun();
 private slots:
     void OnIdleTimeValueChanged(int value);
     void OnClicked();
     void OnIdleTime(int);
+    void OnAutoRun(int);
 private:
     Ui::screen_offClass ui;
 
