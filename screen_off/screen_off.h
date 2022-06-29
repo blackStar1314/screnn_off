@@ -6,6 +6,7 @@
 
 class IdleMonitor;
 class QSystemTrayIcon;
+class QSettings;
 class screen_off : public QDialog
 {
     Q_OBJECT
@@ -24,11 +25,10 @@ private slots:
     void OnIdleTimeValueChanged(int value);
     void OnClicked();
     void OnIdleTime(int);
-    void OnKeyBoardEvent(int vkCode, int keyStore);
-
 private:
     Ui::screen_offClass ui;
 
+    std::shared_ptr<QSettings>    _iniCfg;
     std::shared_ptr<IdleMonitor> _idleMontor;
     bool                         _monitorState;
     QSystemTrayIcon* _tray;

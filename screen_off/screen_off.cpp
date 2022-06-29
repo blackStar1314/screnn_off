@@ -3,13 +3,21 @@
 #include <QCloseEvent>
 #include <QMenu>
 #include <QSystemTrayIcon>
+#include <QSettings>
 #include <Windows.h>
 #include "idle_monitor.h"
+
+namespace ini_configuration{
+    constexpr auto kGroupName = "config";
+    constexpr auto kIdleTimeKeyName = "idleTime";
+    constexpr auto kStateKeyName = "state";
+}
 
 screen_off::screen_off(QWidget *parent)
     : QDialog(parent)
     , _idleMontor(std::make_shared<IdleMonitor>())
     , _monitorState(false)
+    , _iniCfg(std::make_shared<QSettings>("./configuration.ini", QSettings::IniFormat))
 {
     ui.setupUi(this);
     auto flag = windowFlags();
@@ -20,12 +28,18 @@ screen_off::screen_off(QWidget *parent)
     CreateSystemTrayIcon();
 
     this->setFixedSize(QSize(width(), height()));
-    _idleMontor->SetIdleTime(1);
+    _iniCfg->beginGroup(ini_configuration::kGroupName);
+    const auto idleTime = _iniCfg->value(ini_configuration::kIdleTimeKeyName, 1).toInt();
+    _idleMontor->SetIdleTime(idleTime);
+    ui.m_idleTimeSpinBox->setValue(idleTime);
+    _monitorState = _iniCfg->value(ini_configuration::kStateKeyName, false).toBool();
+    _iniCfg->endGroup();
+    ChangeMonitorState();
 
     QObject::connect(ui.m_idleTimeSpinBox, SIGNAL(valueChanged(int)), this, SLOT(OnIdleTimeValueChanged(int)));
     QObject::connect(ui.m_mintorState, SIGNAL(clicked()), this, SLOT(OnClicked()));
     QObject::connect(_idleMontor.get(), SIGNAL(IdleTime(int)), this, SLOT(OnIdleTime(int)));
-    }
+}
 
 screen_off::~screen_off()
 {}
@@ -92,12 +106,19 @@ void screen_off::DelMonitorPower(bool off)
 void screen_off::OnIdleTimeValueChanged(int value)
 {
     _idleMontor->SetIdleTime(value);
+
+    _iniCfg->beginGroup(ini_configuration::kGroupName);
+    _iniCfg->setValue(ini_configuration::kIdleTimeKeyName, value);
+    _iniCfg->endGroup();
 }
 
 void screen_off::OnClicked()
 {
     _monitorState = !_monitorState; // 取反
     ChangeMonitorState();
+    _iniCfg->beginGroup(ini_configuration::kGroupName);
+    _iniCfg->setValue(ini_configuration::kStateKeyName, _monitorState);
+    _iniCfg->endGroup();
 }
 
 void screen_off::OnIdleTime(int timeElapsed)
@@ -105,8 +126,4 @@ void screen_off::OnIdleTime(int timeElapsed)
     qDebug() << "On Idle time : " << timeElapsed;
     LockWorkStation();
     DelMonitorPower(true);
-}
-
-void screen_off::OnKeyBoardEvent(int vkCode, int keyStore)
-{
 }
