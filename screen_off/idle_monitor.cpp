@@ -57,9 +57,8 @@ void IdleMonitor::Stop()
 {
 #ifdef HOOK
     UnHook();
-#else
-    stop();
 #endif
+    stop();
 }
 
 #ifdef HOOK
@@ -76,7 +75,7 @@ void IdleMonitor::UnHook()
 #endif // HOOK
 
 
-unsigned long IdleMonitor::GetLastIdleTime()
+unsigned long long IdleMonitor::GetLastIdleTime()
 {
 #ifdef INPUT_INFO
     LASTINPUTINFO lii;
@@ -94,7 +93,7 @@ unsigned long IdleMonitor::GetLastIdleTime()
 
 void IdleMonitor::OnTimer()
 {
-    auto currentTime = GetTickCount();
+    auto currentTime = GetTickCount64();
     auto timeElapsed = currentTime - GetLastIdleTime();
     qDebug() << "OnTimer : " << timeElapsed;
     if (timeElapsed > std::chrono::duration_cast<std::chrono::milliseconds>(_idleTime).count()) {

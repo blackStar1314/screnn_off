@@ -22,7 +22,7 @@ signals:
     void IdleTime(int);
 
 private:
-    unsigned long GetLastIdleTime();
+    unsigned long long GetLastIdleTime();
     void OnTimer();
 
     std::atomic<unsigned long long> _lastIdleTime;
