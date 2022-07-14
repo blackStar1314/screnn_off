@@ -4,6 +4,7 @@
 #include <QMenu>
 #include <QSystemTrayIcon>
 #include <QSettings>
+#include <QDir>
 #include <Windows.h>
 #include "idle_monitor.h"
 
@@ -108,10 +109,10 @@ void screen_off::DelMonitorPower(bool off)
 
 bool screen_off::IsAutoRun()
 {
-    QSettings bootUpSettings("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::Registry32Format);
+    QSettings bootUpSettings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::Registry32Format);
     const auto name = QCoreApplication::applicationName();
-    const auto appPath = QCoreApplication::applicationFilePath();
-    if (bootUpSettings.contains(name) && bootUpSettings.value(name) == appPath) {
+    const auto appPath = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+    if (bootUpSettings.contains(name) && bootUpSettings.value(name).toString().contains(appPath)) {
         return true;
     }
     else {
@@ -146,12 +147,12 @@ void screen_off::OnIdleTime(int timeElapsed)
 
 void screen_off::OnAutoRun(int value)
 {
-    QSettings bootUpSettings("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::Registry32Format);
-    const auto appPath = QCoreApplication::applicationFilePath();
+    QSettings bootUpSettings("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::Registry32Format);
+    const auto appPath = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
     const auto name = QCoreApplication::applicationName();
     qDebug() << "On auto run : " << value;
     if (value == 2) {
-        bootUpSettings.setValue(name, appPath);
+        bootUpSettings.setValue(name, appPath + " /minimized /onboot");
     }
     else {
         bootUpSettings.remove(name);
